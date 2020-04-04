@@ -1,7 +1,7 @@
 # CoreFreq GUI
 ## Build & Run
 ### Dependencies
-* The [CoreFreq](github.com/cyring/CoreFreq) header files
+* The [CoreFreq](https://github.com/cyring/CoreFreq) header files
 * The GNU C Library
 * The X/Window Xlib Library
 * The FreeType Library (optional)
