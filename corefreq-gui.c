@@ -89,14 +89,14 @@ void Draw_CPU_Frequency(XWINDOW *W,
 			h = One_Half_Char_Height(W, SMALL),
 
 		r = ((w - Twice_Char_Width(W, SMALL)) * CFlop->Relative.Ratio)
-			/ W->A->M.Shm->Proc.Boost[BOOST(1C)],
+			/ W->A->M.Shm->Cpu[cpu].Boost[BOOST(1C)],
 
 		p = y + (Twice_Char_Height(W, SMALL) * (cpu + 1));
 
 	char str[16];
 	snprintf(str, 16, "%03u%7.2f", cpu, CFlop->Relative.Freq);
 
-    if (CFlop->Relative.Ratio >= W->A->M.Shm->Proc.Boost[BOOST(MAX)]) {
+    if (CFlop->Relative.Ratio >= W->A->M.Shm->Cpu[cpu].Boost[BOOST(MAX)]) {
 	SetFG(W, SMALL, _COLOR_BAR);
     } else {
 	SetFG(W);
