@@ -5,6 +5,7 @@
  */
 
 #define _GNU_SOURCE
+#include <sys/ioctl.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -48,14 +49,14 @@ int ClientFollowService(SERVICE_PROC *pSlave, SERVICE_PROC *pMaster, pid_t pid)
 
 void Build_Processor(XWINDOW *W)
 {
-	const size_t len = strlen(W->A->M.Shm->Proc.Brand);
+	const size_t len = strlen(W->A->M.RO(Shm)->Proc.Brand);
 	/* Reset the color context.					*/
 	SetFG(W, SMALL, W->color.foreground);
 	/* Processor specification.					*/
 	DrawStr(W, B, LARGE,
 		abs(W->width - (One_Char_Width(W, LARGE) * len)) / 2,
 		One_Char_Height(W, LARGE),
-		W->A->M.Shm->Proc.Brand, len);
+		W->A->M.RO(Shm)->Proc.Brand, len);
 }
 
 void Build_CPU_Frequency(XWINDOW *W)
@@ -89,14 +90,14 @@ void Draw_CPU_Frequency(XWINDOW *W,
 			h = One_Half_Char_Height(W, SMALL),
 
 		r = ((w - Twice_Char_Width(W, SMALL)) * CFlop->Relative.Ratio)
-			/ W->A->M.Shm->Cpu[cpu].Boost[BOOST(1C)],
+			/ W->A->M.RO(Shm)->Cpu[cpu].Boost[BOOST(1C)],
 
 		p = y + (Twice_Char_Height(W, SMALL) * (cpu + 1));
 
 	char str[16];
 	snprintf(str, 16, "%03u%7.2f", cpu, CFlop->Relative.Freq);
 
-    if (CFlop->Relative.Ratio >= W->A->M.Shm->Cpu[cpu].Boost[BOOST(MAX)]) {
+    if (CFlop->Relative.Ratio >= W->A->M.RO(Shm)->Cpu[cpu].Boost[BOOST(MAX)]) {
 	SetFG(W, SMALL, _COLOR_BAR);
     } else {
 	SetFG(W);
@@ -116,11 +117,11 @@ void Draw_CPU_Frequency(XWINDOW *W,
 void DrawLayout(uARG *U)
 {
 	unsigned int cpu;
-    for (cpu = 0; cpu < U->A->M.Shm->Proc.CPU.Count; cpu++)
+    for (cpu = 0; cpu < U->A->M.RO(Shm)->Proc.CPU.Count; cpu++)
     {
 	struct FLIP_FLOP *CFlop = \
-		&U->A->M.Shm->Cpu[cpu].FlipFlop[
-			!U->A->M.Shm->Cpu[cpu].Toggle
+		&U->A->M.RO(Shm)->Cpu[cpu].FlipFlop[
+			!U->A->M.RO(Shm)->Cpu[cpu].Toggle
 		];
 
 	XWINDOW *walker = U->A->W;
@@ -151,19 +152,19 @@ static void *DrawLoop(void *uArg)
 
 	pthread_setname_np(U->TID.Drawing, "corefreq-gui-dw");
 
-	ClientFollowService(&localService, &U->A->M.Shm->Proc.Service, 0);
+	ClientFollowService(&localService, &U->A->M.RO(Shm)->Proc.Service, 0);
 
-    while (!BITVAL(U->Shutdown, SYNC))
-    {
-	if (BITCLR(LOCKLESS, U->A->M.Shm->Proc.Sync, SYNC1) == 0) {
-		nanosleep(&U->A->M.Shm->Sleep.pollingWait, NULL);
-	} else {
-		Paint(U, False, True, True, True);
-	}
-	if (BITCLR(LOCKLESS, U->A->M.Shm->Proc.Sync, NTFY1)) {
-		ClientFollowService(&localService,&U->A->M.Shm->Proc.Service,0);
-	}
+  while (!BITVAL(U->Shutdown, SYNC))
+  {
+    if (BITCLR(LOCKLESS, U->A->M.RW(Shm)->Proc.Sync, SYNC1) == 0) {
+	nanosleep(&U->A->M.RO(Shm)->Sleep.pollingWait, NULL);
+    } else {
+	Paint(U, False, True, True, True);
     }
+    if (BITCLR(LOCKLESS, U->A->M.RW(Shm)->Proc.Sync, NTFY1)) {
+	ClientFollowService(&localService,&U->A->M.RO(Shm)->Proc.Service,0);
+    }
+}
 	return(NULL);
 }
 
@@ -200,14 +201,14 @@ static void *Emergency(void *uArg)
 
 	pthread_setname_np(U->TID.SigHandler, "corefreq-gui-sg");
 
-	ClientFollowService(&localService, &U->A->M.Shm->Proc.Service, 0);
+	ClientFollowService(&localService, &U->A->M.RO(Shm)->Proc.Service, 0);
 
 	int caught = 0;
     while (!BITVAL(U->Shutdown, SYNC) && !sigwait(&U->TID.Signal, &caught))
     {
-	if (BITVAL(LOCKLESS, U->A->M.Shm->Proc.Sync, NTFY1)) {
-		ClientFollowService(&localService,&U->A->M.Shm->Proc.Service,0);
-	}
+      if (BITVAL(LOCKLESS, U->A->M.RW(Shm)->Proc.Sync, NTFY1)) {
+	ClientFollowService(&localService,&U->A->M.RO(Shm)->Proc.Service,0);
+      }
 	switch (caught) {
 	case SIGINT:
 	case SIGQUIT:
@@ -337,7 +338,7 @@ int main(int argc, char *argv[])
 
 	uARG U = {
 		.Shutdown = 0x0,
-		.M = { .fd = -1 },
+		.FD = { .ro = -1, .rw = -1 },
 		.TID = { .SigHandler = 0, .Drawing = 0 },
 
 		.A = AllocGUI()
@@ -352,24 +353,37 @@ int main(int argc, char *argv[])
 	&& (XInitThreads() != 0)
 		&& ((rc = OpenDisplay(U.A)) == GUI_SUCCESS))
   {
-    if ((U.M.fd = shm_open(SHM_FILENAME, O_RDWR,
-			S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH)) != -1)
+    if	(	((U.FD.ro = shm_open(RO(SHM_FILENAME), O_RDONLY,
+				 S_IRUSR|S_IWUSR
+				|S_IRGRP|S_IROTH)) != -1)
+    &&		((U.FD.rw = shm_open(RW(SHM_FILENAME), O_RDWR,
+				 S_IRUSR|S_IWUSR
+				|S_IRGRP|S_IWGRP
+				|S_IROTH|S_IWOTH)) != -1) )
     {
-		struct stat shmStat = {0};
-	if (fstat(U.M.fd, &shmStat) != -1)
+	struct stat stat_ro = {0}, stat_rw = {0};
+
+	if((fstat(U.FD.ro, &stat_ro) != -1) && (fstat(U.FD.rw, &stat_rw) != -1))
 	{
-	  if ((U.A->M.Shm = mmap( NULL, shmStat.st_size,
-					PROT_READ|PROT_WRITE,MAP_SHARED,
-					U.M.fd, 0 )) != MAP_FAILED)
+	  if (	((U.A->M.RO(Shm) = mmap( NULL, stat_ro.st_size,
+					PROT_READ, MAP_SHARED,
+					U.FD.ro, 0 )) != MAP_FAILED)
+	  &&	((U.A->M.RW(Shm) = mmap( NULL, stat_rw.st_size,
+					PROT_READ|PROT_WRITE, MAP_SHARED,
+					U.FD.rw, 0 )) != MAP_FAILED) )
 	  {
-	    if (CHK_FOOTPRINT(U.A->M.Shm->FootPrint,	COREFREQ_MAJOR,
+	    if (CHK_FOOTPRINT(U.A->M.RO(Shm)->FootPrint,	MAX_FREQ_HZ,
+							CORE_COUNT,
+							TASK_ORDER,
+							COREFREQ_MAJOR,
 							COREFREQ_MINOR,
 							COREFREQ_REV))
 	    {
 		ClientFollowService(	&localService,
-					&U.A->M.Shm->Proc.Service, 0 );
+					&U.A->M.RO(Shm)->Proc.Service, 0 );
 
-		U.A->M.Shm->App.GUI = getpid();
+		RING_WRITE_SUB_CMD(	SESSION_GUI, U.A->M.RW(Shm)->Ring[1],
+					COREFREQ_SESSION_APP, getpid() );
 
 		rc = StartWidget(U.A, GEOMETRY_WIDTH, GEOMETRY_HEIGHT, 
 				_BACKGROUND_GLOBAL, _FOREGROUND_GLOBAL,
@@ -403,11 +417,13 @@ int main(int argc, char *argv[])
 		    }
 			StopWidget(U.A);
 		}
-		U.A->M.Shm->App.GUI = 0;
+		RING_WRITE_SUB_CMD(	SESSION_GUI, U.A->M.RW(Shm)->Ring[1],
+					COREFREQ_SESSION_APP, (pid_t) 0 );
 	    } else {
 		rc = GUI_VERSION;
 	    }
-		munmap(U.A->M.Shm, shmStat.st_size);
+		munmap(U.A->M.RO(Shm), stat_ro.st_size);
+		munmap(U.A->M.RW(Shm), stat_rw.st_size);
 	  } else {
 		rc = GUI_SYSTEM;
 	  }
@@ -426,4 +442,3 @@ int main(int argc, char *argv[])
 	FreeGUI(U.A);
 	return (rc);
 }
-

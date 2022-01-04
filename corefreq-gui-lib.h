@@ -88,7 +88,8 @@ typedef struct _xARG
 {
     struct
     {
-	SHM_STRUCT	*Shm;
+	SHM_STRUCT_RO	*RO(Shm);
+	SHM_STRUCT_RW	*RW(Shm);
     } M;
 
 	Display 	*display;
@@ -431,4 +432,3 @@ extern GUI_STEP EventGUI(xARG*) ;
 						NULL,		/*2*/	\
 						NULL )		/*1*/	\
 							( __VA_ARGS__ )
-

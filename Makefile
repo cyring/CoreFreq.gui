@@ -7,6 +7,12 @@ CFLAGS = -Wall
 FREETYPE_INC ?= $(shell pkg-config --cflags freetype2 2>/dev/null)
 COREFREQ_INC ?= -I ../CoreFreq
 PREFIX ?= /usr
+CORE_COUNT ?= 256
+TASK_ORDER = 5
+MAX_FREQ_HZ ?= 5250000000
+
+DEFINITIONS =	-D CORE_COUNT=$(CORE_COUNT) -D TASK_ORDER=$(TASK_ORDER) \
+		-D MAX_FREQ_HZ=$(MAX_FREQ_HZ)
 
 ifneq ($(FREETYPE_INC),)
 	CONFIG_XFT = -D HAVE_XFT=1
@@ -27,16 +33,19 @@ clean:
 corefreq-gui-lib.o: corefreq-gui-lib.c
 	$(CC)	$(CFLAGS) -c corefreq-gui-lib.c \
 		$(CONFIG_XFT) $(FREETYPE_INC) $(COREFREQ_INC) \
+		$(DEFINITIONS) \
 		-o corefreq-gui-lib.o
 
 corefreq-gui.o: corefreq-gui.c
 	$(CC)	$(CFLAGS) -c corefreq-gui.c \
 		$(CONFIG_XFT) $(FREETYPE_INC) $(COREFREQ_INC) \
+		$(DEFINITIONS) \
 		-o corefreq-gui.o
 
 corefreq-gui: corefreq-gui.o corefreq-gui-lib.o
 	$(CC)	$(CFLAGS) corefreq-gui.c corefreq-gui-lib.c \
 		$(CONFIG_XFT) $(FREETYPE_INC) $(COREFREQ_INC) \
+		$(DEFINITIONS) \
 		-o corefreq-gui -lX11 $(LIBRARY_XFT) -lpthread -lrt
 
 .PHONY: info

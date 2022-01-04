@@ -15,8 +15,8 @@ typedef struct {
 	Bit64 Shutdown	__attribute__ ((aligned (8)));
 	struct
 	{
-		int		fd;
-	} M;
+		int		ro, rw;
+	} FD;
 	struct
 	{
 		sigset_t	Signal;
@@ -48,4 +48,3 @@ void	FlushLayout(xARG *) ;
 	if (doDraw)	{	DrawLayout(U);		}		\
 	if (doFlush)	{	FlushLayout(U->A);	}		\
 }
-

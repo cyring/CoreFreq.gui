@@ -4,6 +4,7 @@
  * Licenses: GPL2
  */
 
+#include <sys/ioctl.h>
 #include <stdlib.h>
 #include <errno.h>
 
@@ -658,4 +659,3 @@ GUI_STEP EventGUI(xARG *A)
     }
 	return (GUI_NONE);
 }
-
