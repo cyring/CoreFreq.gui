@@ -283,8 +283,8 @@ void Help(uARG *U)
 	}
 	printf( "\nExit status:\n"				\
 		"\t0\tSUCCESS\t\tSuccessful execution\n"	\
-		"\t1\tSYNTAX\t\tCommand syntax error\n"	\
-		"\t2\tSYSTEM\t\tAny system issue\n"	\
+		"\t1\tSYNTAX\t\tCommand syntax error\n" 	\
+		"\t2\tSYSTEM\t\tAny system issue\n"		\
 		"\t3\tDISPLAY\t\tDisplay setup error\n" 	\
 		"\t4\tVERSION\t\tMismatch API version\n"	\
 		"\nReport bugs to labs[at]cyring.fr\n" );
@@ -372,7 +372,7 @@ int main(int argc, char *argv[])
 					PROT_READ|PROT_WRITE, MAP_SHARED,
 					U.FD.rw, 0 )) != MAP_FAILED) )
 	  {
-	    if (CHK_FOOTPRINT(U.A->M.RO(Shm)->FootPrint,	MAX_FREQ_HZ,
+	    if (CHK_FOOTPRINT(U.A->M.RO(Shm)->FootPrint,MAX_FREQ_HZ,
 							CORE_COUNT,
 							TASK_ORDER,
 							COREFREQ_MAJOR,
