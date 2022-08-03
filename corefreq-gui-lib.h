@@ -1,6 +1,6 @@
 /*
  * CoreFreq
- * Copyright (C) 2015-2020 CYRIL INGENIERIE
+ * Copyright (C) 2015-2022 CYRIL INGENIERIE
  * Licenses: GPL2
  */
 
@@ -168,7 +168,7 @@ typedef struct _xARG
 #define Footer_Height(X, N)		 (One_Char_Height(X, N)		\
 					+ Half_Char_Height(X, N))
 
-#define GEOMETRY_DEFAULT_COLS	172
+#define GEOMETRY_DEFAULT_COLS	92
 #define GEOMETRY_DEFAULT_ROWS	70
 
 #define GEOMETRY_WIDTH	(GEOMETRY_DEFAULT_COLS * DEFAULT_FONT_CHAR_WIDTH)
