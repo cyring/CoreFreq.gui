@@ -34,6 +34,6 @@ Press [CTRL]+[X] to stop the GUI.
 # About
 [CyrIng](https://github.com/cyring)
 
-Copyright (C) 2015-2022 CYRIL INGENIERIE  
+Copyright (C) 2015-2023 CYRIL COURTIAT  
  -------
 

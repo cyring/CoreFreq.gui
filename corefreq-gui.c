@@ -1,6 +1,6 @@
 /*
  * CoreFreq
- * Copyright (C) 2015-2022 CYRIL INGENIERIE
+ * Copyright (C) 2015-2023 CYRIL COURTIAT
  * Licenses: GPL2
  */
 
@@ -272,7 +272,7 @@ void Help(uARG *U)
 	int jdx = strlen(__FILE__) - 2;
 
 	printf( "CoreFreq."					\
-		"  Copyright (C) 2015-2022 CYRIL INGENIERIE\n\n"\
+		"  Copyright (C) 2015-2023 CYRIL COURTIAT\n\n"\
 		"Usage:\t%.*s [--option <arguments>]\n", jdx, __FILE__ );
 
 	for (jdx = 0; jdx < zdx; jdx++) {
