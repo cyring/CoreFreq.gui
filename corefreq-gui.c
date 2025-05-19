@@ -1,6 +1,6 @@
 /*
  * CoreFreq
- * Copyright (C) 2015-2023 CYRIL COURTIAT
+ * Copyright (C) 2015-2025 CYRIL COURTIAT
  * Licenses: GPL2
  */
 
@@ -31,16 +31,16 @@
 
 SERVICE_PROC localService = {.Proc = -1};
 
-int ClientFollowService(SERVICE_PROC *pSlave, SERVICE_PROC *pMaster, pid_t pid)
+int ClientFollowService(SERVICE_PROC *pPeer, SERVICE_PROC *pMain, pid_t pid)
 {
-	if (pSlave->Proc != pMaster->Proc) {
-		pSlave->Proc = pMaster->Proc;
+	if (pPeer->Proc != pMain->Proc) {
+		pPeer->Proc = pMain->Proc;
 
 		cpu_set_t cpuset;
 		CPU_ZERO(&cpuset);
-		CPU_SET(pSlave->Core, &cpuset);
-		if (pSlave->Thread != -1)
-			CPU_SET(pSlave->Thread, &cpuset);
+		CPU_SET(pPeer->Core, &cpuset);
+		if (pPeer->Thread != -1)
+			CPU_SET(pPeer->Thread, &cpuset);
 
 		return (sched_setaffinity(pid, sizeof(cpu_set_t), &cpuset));
 	}
@@ -126,7 +126,7 @@ void DrawLayout(uARG *U)
 
 	XWINDOW *walker = U->A->W;
 	while (walker != NULL) {
-		Draw_CPU_Frequency(walker, cpu, CFlop );
+		Draw_CPU_Frequency(walker, cpu, CFlop);
 		walker = GetNext(walker);
 	}
     }
@@ -272,7 +272,7 @@ void Help(uARG *U)
 	int jdx = strlen(__FILE__) - 2;
 
 	printf( "CoreFreq."					\
-		"  Copyright (C) 2015-2023 CYRIL COURTIAT\n\n"\
+		"  Copyright (C) 2015-2025 CYRIL COURTIAT\n\n"\
 		"Usage:\t%.*s [--option <arguments>]\n", jdx, __FILE__ );
 
 	for (jdx = 0; jdx < zdx; jdx++) {
