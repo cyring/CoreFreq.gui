@@ -4,7 +4,7 @@
 
 COREFREQ_MAJOR = 2
 COREFREQ_MINOR = 1
-COREFREQ_REV = 0
+COREFREQ_REV = 1
 CC ?= cc
 CFLAGS = -Wall
 FREETYPE_INC ?= $(shell pkg-config --cflags freetype2 2>/dev/null)
